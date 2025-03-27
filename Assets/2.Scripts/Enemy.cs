@@ -15,6 +15,12 @@ public class Enemy : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        transform.Translate(Vector3.left * Time.deltaTime * 3.0f);
+    }
+
+    public void SetOrder(int order)
+    {
+        for (int i = 0; i < _spRenderer.Length; i++)
+            _spRenderer[i].sortingOrder = order;
     }
 }
