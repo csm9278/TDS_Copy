@@ -12,27 +12,41 @@ public class Enemy : MonoBehaviour
     Transform rayTr;
 
     Rigidbody2D rb;
-    float speed = 150.0f;
-    LayerMask layer;
-    Vector3 moveVec = Vector3.left;
+    [SerializeField]
+    float speed = 2.0f;
 
+    LayerMask layer;
+    Vector2 moveVec = Vector2.left;
+    bool isJump = false;
+
+    float groundY;
+
+    [SerializeField]
+    bool checkVelocity = false;
 
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        speed = Random.Range(speed - 20f, speed + 20f);
+        moveVec.y = rb.velocity.y;
+        StartCoroutine(CheckGroundY());
     }
 
     private void FixedUpdate()
     {
-        Move();
+        if (checkVelocity)
+        {
+            Debug.Log(rb.velocity);
+        }
         CheckFront();
+        Move();
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.Space))
+            MoveBack();
     }
 
     public void SetOrder(int order)
@@ -47,21 +61,69 @@ public class Enemy : MonoBehaviour
 
     void Move()
     {
-        rb.velocity = moveVec * Time.fixedDeltaTime * speed;
+        rb.velocity = new Vector2(moveVec.x * speed, rb.velocity.y);
+
+        if (Mathf.Abs(rb.velocity.x) < 0.05f)
+            if(this.transform.position.y > groundY)
+            MoveLowObj();
+    }
+
+    IEnumerator CheckGroundY()
+    {
+        yield return new WaitForSeconds(0.1f);
+        while(true)
+        {
+            if (rb.velocity.y == 0)
+            {
+                groundY = this.transform.position.y;
+                yield break;
+            }
+
+
+            yield return new WaitForFixedUpdate();
+        }
     }
 
     void CheckFront()
     {
-        //if (!isRider)
-        //    return;
-
         RaycastHit2D[] hit = Physics2D.RaycastAll(rayTr.position, Vector3.left, .5f, layer);
         Debug.DrawRay(rayTr.position, Vector3.left * .5f, Color.red);
-        if(hit.Length > 1)
+        if (hit.Length > 1)
+            Jump();
+    }
+
+    void CheckGround()
+    {
+        if (this.transform.position.y > groundY)    //공중에 있을 시
         {
-            for (int i = 0; i < hit.Length; i++)
-                Debug.Log(hit[i].collider.gameObject.name);
-            rb.AddForce(Vector3.up * 100.0f);
+
         }
+        else
+            isJump = false;
+    }
+
+    void Jump()
+    {
+        if (Mathf.Abs(rb.velocity.y) > 0.1)
+            return;
+
+        isJump = true;
+        rb.velocity = new Vector2(rb.velocity.x, 0);
+        rb.AddForce(Vector2.up * 7.0f, ForceMode2D.Impulse);
+    }
+
+    void MoveBack()
+    {
+        Vector2 movePos = this.transform.position;
+        movePos.x -= 1.0f;
+        rb.MovePosition(movePos);
+    }
+
+    void MoveLowObj()
+    {
+        RaycastHit2D[] hit = Physics2D.RaycastAll(rayTr.position, Vector3.left, .5f, layer);
+        Debug.DrawRay(rayTr.position, Vector3.left * .5f, Color.red);
+        if (hit.Length > 1)
+            Jump();
     }
 }

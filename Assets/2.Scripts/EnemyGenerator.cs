@@ -37,6 +37,7 @@ public class EnemyGenerator : MonoBehaviour
 
         int posRand = Random.Range(0, 3);
 
+        posRand = 0;
         Vector3 pos = spawnPos.position;
         pos.y -= posRand * 0.25f;
         enemyObj.transform.position = pos;
