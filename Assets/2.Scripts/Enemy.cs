@@ -8,21 +8,34 @@ public class Enemy : MonoBehaviour
     SpriteRenderer[] _spRenderer;
     [SerializeField]
     bool isRider = false;
-    [SerializeField]
-    Transform rayTr;
+        [SerializeField]
+    Transform frontRayTr,backRayTr, topRayTr, bottomRayTr;
+
 
     Rigidbody2D rb;
     [SerializeField]
     float speed = 2.0f;
 
     LayerMask layer;
+    LayerMask boxLayer;
     Vector2 moveVec = Vector2.left;
     bool isJump = false;
+    float checkJumpTimer = 0.1f;
+    bool isMove = true;
+    bool isBack = false;
+    bool checkAttack = false;
 
     float groundY;
 
     [SerializeField]
     bool checkVelocity = false;
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.DrawWireCube(frontRayTr.position, new Vector2(0.1f, .8f));
+        Gizmos.DrawWireCube(backRayTr.position, new Vector2(-0.5f, .8f));
+        Gizmos.DrawWireCube(topRayTr.position, new Vector2(0.5f, .3f));
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -57,15 +70,15 @@ public class Enemy : MonoBehaviour
         string layerName = "Enemy" + order.ToString();
         gameObject.layer = LayerMask.NameToLayer(layerName);
         layer = LayerMask.GetMask(layerName);
+        boxLayer = LayerMask.GetMask("Box");
     }
 
     void Move()
     {
-        rb.velocity = new Vector2(moveVec.x * speed, rb.velocity.y);
+        if (!isMove)
+            return;
 
-        if (Mathf.Abs(rb.velocity.x) < 0.05f)
-            if(this.transform.position.y > groundY)
-            MoveLowObj();
+        rb.velocity = new Vector2(moveVec.x * speed, rb.velocity.y);
     }
 
     IEnumerator CheckGroundY()
@@ -86,44 +99,102 @@ public class Enemy : MonoBehaviour
 
     void CheckFront()
     {
-        RaycastHit2D[] hit = Physics2D.RaycastAll(rayTr.position, Vector3.left, .5f, layer);
-        Debug.DrawRay(rayTr.position, Vector3.left * .5f, Color.red);
-        if (hit.Length > 1)
-            Jump();
+        //앞에 좀비가 있을 시
+        RaycastHit2D hit = Physics2D.BoxCast(frontRayTr.position, new Vector2(0.1f, .8f), 0, Vector3.left, 0, layer);
+        if (hit)
+        {
+            isMove = false;
+            //뒤, 위에 좀비가 없을 시 점프
+            RaycastHit2D backHit = Physics2D.BoxCast(backRayTr.position, new Vector2(0.5f, .8f), 0, Vector3.right, 0.1f, layer);
+            RaycastHit2D topHit = Physics2D.BoxCast(topRayTr.position, new Vector2(0.6f, 0.1f), 0, Vector2.up, 0.3f, layer);
+            if (!backHit && !topHit)
+            {
+                CheckJumpTimer();
+            }
+        }
+        else
+            isMove = true;
+
+        //앞에 플레이어가 있을 시
+        if (isBack)
+            return;
+        RaycastHit2D hitBox = Physics2D.Raycast(frontRayTr.position, Vector3.left, .1f, boxLayer);
+        if (hitBox)
+        {
+            isMove = false;
+            checkAttack = true;
+            CheckGround();
+        }
+        else
+            checkAttack = false;
     }
 
     void CheckGround()
     {
-        if (this.transform.position.y > groundY)    //공중에 있을 시
+        if (this.transform.position.y > groundY && checkAttack)    //공중에 있을 시
         {
+            //RaycastHit2D hit = Physics2D.BoxCast(bottomRayTr.position, new Vector2(0.6f, 0.1f), 0, Vector2.down, 0.3f, layer);
+            RaycastHit2D hit = Physics2D.Raycast(bottomRayTr.position, Vector2.down, 0.1f, layer);
+            if (hit)
+            {
+                if (hit.collider.TryGetComponent(out Enemy enemy))
+                    enemy.MoveBack();
 
+            }
+                
         }
-        else
-            isJump = false;
     }
 
     void Jump()
     {
-        if (Mathf.Abs(rb.velocity.y) > 0.1)
+        if (Mathf.Abs(rb.velocity.y) > 0.1f)
             return;
 
-        isJump = true;
         rb.velocity = new Vector2(rb.velocity.x, 0);
         rb.AddForce(Vector2.up * 7.0f, ForceMode2D.Impulse);
+
+        float maxJumpVelocity = 3.0f;
+        if (rb.velocity.y >= maxJumpVelocity)
+            rb.velocity = new Vector2(rb.velocity.x, maxJumpVelocity);
+        checkJumpTimer = 0.1f;
     }
 
     void MoveBack()
     {
-        Vector2 movePos = this.transform.position;
-        movePos.x -= 1.0f;
-        rb.MovePosition(movePos);
+        if (isBack)
+            return;
+
+        isBack = true;
+        StartCoroutine(moveBackCO());
     }
 
-    void MoveLowObj()
+    IEnumerator moveBackCO()
     {
-        RaycastHit2D[] hit = Physics2D.RaycastAll(rayTr.position, Vector3.left, .5f, layer);
-        Debug.DrawRay(rayTr.position, Vector3.left * .5f, Color.red);
-        if (hit.Length > 1)
+        isMove = true;
+        moveVec.x = .8f;
+        rb.mass = 30.0f;
+
+        while(true)
+        {
+            RaycastHit2D hit = Physics2D.Raycast(frontRayTr.position, Vector3.left, 10f, layer);
+            if (hit)
+                break;
+            yield return new WaitForFixedUpdate();
+        }
+
+        isBack = false;
+        rb.mass = 1;
+        moveVec.x = -1;
+    }
+
+    void CheckJumpTimer()
+    {
+        if(checkJumpTimer >= 0.0f)
+            checkJumpTimer -= Time.deltaTime;
+
+        if (checkJumpTimer <= 0.0f)
             Jump();
     }
+
+
 }

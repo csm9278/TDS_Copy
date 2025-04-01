@@ -15,8 +15,8 @@ TagManager:
   - Enemy0
   - Enemy1
   - Enemy2
-  - Box
-  - 
+  - Wall
+  - Attackable
   - 
   - 
   - 
