@@ -42,10 +42,7 @@ public class Player : Character
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         mousePos.z = 0;
 
-        Vector2 dir = (mousePos - this.transform.position).normalized;
-        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-        angle -= 33.0f;
-        gunObject.transform.rotation = Quaternion.Euler(0, 0, angle);
+        LookWeapon(mousePos);
     }
 
     void AutoAttack()
@@ -53,12 +50,7 @@ public class Player : Character
         RaycastHit2D hit = Physics2D.Raycast(autoAttackRayPoint.position, Vector2.right, 15.0f, enemylayer);
 
         if(hit)
-        {
-            Vector2 dir = (hit.collider.transform.position - this.transform.position).normalized;
-            float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-            angle -= 33.0f;
-            gunObject.transform.rotation = Quaternion.Euler(0, 0, angle);
-        }
+            LookWeapon(hit.collider.transform.position);
     }
 
     void CheckBulletTime()
@@ -86,5 +78,13 @@ public class Player : Character
             bobj.transform.eulerAngles = rot;
             yield return new WaitForFixedUpdate();
         }
+    }
+
+    void LookWeapon(Vector3 targetPoint)
+    {
+        Vector2 dir = (targetPoint - this.transform.position).normalized;
+        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+        angle -= 33.0f;
+        gunObject.transform.rotation = Quaternion.Euler(0, 0, angle);
     }
 }
