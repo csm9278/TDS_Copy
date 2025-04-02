@@ -2,24 +2,47 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using DG.Tweening;
 
-public class Character : MonoBehaviour
+public class Character : MemoryPoolObject
 {
+    [Header("--- Character ---")]
     [SerializeField]
     float hp = 100;
+    float curHp;
 
     [SerializeField]
-    Image hpbar, curHpBar, effectHpBar;
+    Slider hpSlider;
 
-    // Start is called before the first frame update
-    void Start()
+    public virtual void TakeDamage(int value)
     {
-        
+        if (!hpSlider.gameObject.activeSelf)
+            hpSlider.gameObject.SetActive(true);
+        curHp -= value;
+
+        if (curHp <= 0)
+        {
+            Debug.Log(curHp);
+            curHp = 0;
+            DieEffect();
+        }
+
+        hpSlider.value = curHp / hp;
     }
 
-    // Update is called once per frame
-    void Update()
+    public virtual void InitCharacter()
     {
-        
+        curHp = hp;
+    }
+
+    public virtual void ResetCharacter()
+    {
+        curHp = hp;
+        hpSlider.gameObject.SetActive(false);
+    }
+
+    public virtual void DieEffect()
+    {
+
     }
 }

@@ -2,64 +2,50 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Enemy : MonoBehaviour
+public class Enemy : Character
 {
     [SerializeField]
     SpriteRenderer[] _spRenderer;
     [SerializeField]
-    bool isRider = false;
-        [SerializeField]
     Transform frontRayTr,backRayTr, topRayTr, bottomRayTr;
-
 
     Rigidbody2D rb;
     [SerializeField]
     float speed = 2.0f;
 
     LayerMask layer;
-    LayerMask boxLayer;
+    LayerMask WallLayer;
+    LayerMask AttackLayer;
     Vector2 moveVec = Vector2.left;
-    bool isJump = false;
     float checkJumpTimer = 0.1f;
+
     bool isMove = true;
     bool isBack = false;
     bool checkAttack = false;
-
     float groundY;
+
+    Animator _animator;
+    Character attackTarget;
 
     [SerializeField]
     bool checkVelocity = false;
 
-    private void OnDrawGizmos()
-    {
-        Gizmos.DrawWireCube(frontRayTr.position, new Vector2(0.1f, .8f));
-        Gizmos.DrawWireCube(backRayTr.position, new Vector2(-0.5f, .8f));
-        Gizmos.DrawWireCube(topRayTr.position, new Vector2(0.5f, .3f));
-    }
-
     // Start is called before the first frame update
     void Start()
     {
+        InitCharacter();
         rb = GetComponent<Rigidbody2D>();
+        _animator = GetComponent<Animator>();
+        WallLayer = LayerMask.GetMask("Wall");
+        AttackLayer = LayerMask.GetMask("Attackable");
         moveVec.y = rb.velocity.y;
         StartCoroutine(CheckGroundY());
     }
 
     private void FixedUpdate()
     {
-        if (checkVelocity)
-        {
-            Debug.Log(rb.velocity);
-        }
         CheckFront();
         Move();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Space))
-            MoveBack();
     }
 
     public void SetOrder(int order)
@@ -70,7 +56,6 @@ public class Enemy : MonoBehaviour
         string layerName = "Enemy" + order.ToString();
         gameObject.layer = LayerMask.NameToLayer(layerName);
         layer = LayerMask.GetMask(layerName);
-        boxLayer = LayerMask.GetMask("Box");
     }
 
     void Move()
@@ -118,15 +103,28 @@ public class Enemy : MonoBehaviour
         //앞에 플레이어가 있을 시
         if (isBack)
             return;
-        RaycastHit2D hitBox = Physics2D.Raycast(frontRayTr.position, Vector3.left, .1f, boxLayer);
+        RaycastHit2D hitBox = Physics2D.Raycast(frontRayTr.position, Vector3.left, .1f, WallLayer);
         if (hitBox)
         {
+            if (attackTarget == null)
+            {
+                RaycastHit2D hitTarget = Physics2D.Raycast(frontRayTr.position, Vector3.left, 0.5f, AttackLayer);
+                if(hitTarget)
+                    if(hitTarget.collider.TryGetComponent(out Character target))
+                        attackTarget = target;
+            }
+
             isMove = false;
             checkAttack = true;
+            _animator.SetBool("IsAttacking", true);
             CheckGround();
         }
         else
+        {
+            attackTarget = null;
             checkAttack = false;
+            _animator.SetBool("IsAttacking", false);
+        }
     }
 
     void CheckGround()
@@ -139,7 +137,6 @@ public class Enemy : MonoBehaviour
             {
                 if (hit.collider.TryGetComponent(out Enemy enemy))
                     enemy.MoveBack();
-
             }
                 
         }
@@ -153,7 +150,7 @@ public class Enemy : MonoBehaviour
         rb.velocity = new Vector2(rb.velocity.x, 0);
         rb.AddForce(Vector2.up * 7.0f, ForceMode2D.Impulse);
 
-        float maxJumpVelocity = 3.0f;
+        float maxJumpVelocity = 4.0f;
         if (rb.velocity.y >= maxJumpVelocity)
             rb.velocity = new Vector2(rb.velocity.x, maxJumpVelocity);
         checkJumpTimer = 0.1f;
@@ -172,7 +169,7 @@ public class Enemy : MonoBehaviour
     {
         isMove = true;
         moveVec.x = .8f;
-        rb.mass = 30.0f;
+        rb.mass = 10.0f;
 
         while(true)
         {
@@ -196,5 +193,19 @@ public class Enemy : MonoBehaviour
             Jump();
     }
 
+    void OnAttack()
+    {
+        if (attackTarget != null)
+            attackTarget.TakeDamage(2);
+    }
 
+    public override void DieEffect()
+    {
+        ObjectReturn();
+    }
+
+    public override void ResetObject()
+    {
+        ResetCharacter();
+    }
 }

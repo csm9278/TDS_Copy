@@ -33,7 +33,8 @@ public class EnemyGenerator : MonoBehaviour
 
     void SpawnEnemy()
     {
-        GameObject enemyObj = Instantiate(enemyPrefab);
+        GameObject enemyObj = MemoryPoolManager.instance.GetObject("Enemy");
+        //GameObject enemyObj = Instantiate(enemyPrefab);
 
         int posRand = Random.Range(0, 3);
 
