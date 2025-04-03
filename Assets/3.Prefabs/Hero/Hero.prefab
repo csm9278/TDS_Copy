@@ -626,6 +626,7 @@ MonoBehaviour:
   itemNumber: 0
   hp: 100
   hpSlider: {fileID: 3948543845483675460}
+  damageTextTr: {fileID: 0}
   attackTime: 1.5
   attackPos: {fileID: 593182238}
   gunObject: {fileID: 1975591559162416938}

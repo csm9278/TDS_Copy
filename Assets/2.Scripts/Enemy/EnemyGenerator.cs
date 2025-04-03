@@ -6,7 +6,7 @@ public class EnemyGenerator : MonoBehaviour
 {
     public Transform spawnPos;
     [SerializeField]
-    float maxGenerateTime = 0.5f;
+    float maxGenerateTime = 1.0f;
     float generateTime = 0.5f;
     [SerializeField]
     GameObject enemyPrefab;
@@ -15,7 +15,7 @@ public class EnemyGenerator : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        generateTime = maxGenerateTime;
     }
 
     // Update is called once per frame
@@ -45,6 +45,14 @@ public class EnemyGenerator : MonoBehaviour
         if(enemyObj.TryGetComponent(out Enemy enemy))
             enemy.SetOrder(posRand);
 
+        generateTime = maxGenerateTime;
+    }
+
+    public void SetGenerateTime(int level)
+    {
+        maxGenerateTime = 3 - (0.5f * level);
+        if (maxGenerateTime <= 0.1f)
+            maxGenerateTime = 0.1f;
         generateTime = maxGenerateTime;
     }
 }

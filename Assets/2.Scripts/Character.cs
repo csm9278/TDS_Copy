@@ -11,24 +11,22 @@ public class Character : MemoryPoolObject
     [SerializeField]
     float hp = 100;
     float curHp;
-    [SerializeField]
-    TMP_Text damageText;
-
 
     [SerializeField]
     Slider hpSlider;
+    [SerializeField]
+    Transform damageTextTr = null;
+    
 
     public virtual void TakeDamage(int value)
     {
         if (!hpSlider.gameObject.activeSelf)
             hpSlider.gameObject.SetActive(true);
+        ShowDamageText(value);
         curHp -= value;
-        if (damageText != null && !damageText.gameObject.activeSelf)
-            StartCoroutine(ShowDamageText());
 
         if (curHp <= 0)
         {
-            Debug.Log(curHp);
             curHp = 0;
             DieEffect();
         }
@@ -47,20 +45,18 @@ public class Character : MemoryPoolObject
         hpSlider.gameObject.SetActive(false);
     }
 
-    IEnumerator ShowDamageText()
+    void ShowDamageText(int value)
     {
-        damageText.gameObject.SetActive(true);
+        if (damageTextTr == null)
+            return;
 
-        Vector3 originPos = damageText.transform.position;
-        Vector3 targetPos = originPos;
-        targetPos.y += 0.2f;
-        yield return damageText.transform.DOMove(targetPos, 0.2f).WaitForCompletion();
-        yield return damageText.DOColor(Color.clear, 0.15f).WaitForCompletion();
+        GameObject damageText = MemoryPoolManager.instance.GetObject("DamageText");
 
-        damageText.color = Color.white;
-        damageText.transform.position = originPos;
-        damageText.gameObject.SetActive(false);
+        if(damageText != null)
+        if (damageText.TryGetComponent(out DamageText dmgtext))
+            dmgtext.SetDamageText(value, damageTextTr);
     }
+
     public virtual void DieEffect()
     {
 

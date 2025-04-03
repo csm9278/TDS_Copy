@@ -36,8 +36,7 @@ public class MemoryPoolManager : MonoBehaviour
 
                 for (int j = 0; j < poolingList[i].itemNumber; j++)
                 {
-                    GameObject pool = Instantiate(poolingList[i].poolObject);
-                    pool.transform.parent = parent.transform;
+                    GameObject pool = Instantiate(poolingList[i].poolObject, parent.transform);
                     pool.gameObject.SetActive(false);
                     if (pool.TryGetComponent(out MemoryPoolObject ob))
                     {
@@ -53,12 +52,12 @@ public class MemoryPoolManager : MonoBehaviour
             else
             {
                 GameObject[] objects = new GameObject[poolingList[i].itemNumber];
-                poolDictionary.Add(poolingList[i].poolTr.gameObject.name, i);
+                poolDictionary.Add(poolingList[i].poolTr.name, i);
+
 
                 for (int j = 0; j < poolingList[i].itemNumber; j++)
                 {
-                    GameObject pool = Instantiate(poolingList[i].poolObject);
-                    pool.transform.parent = poolingList[i].poolTr.transform;
+                    GameObject pool = Instantiate(poolingList[i].poolObject, poolingList[i].poolTr.transform);
                     pool.gameObject.SetActive(false);
                     if (pool.TryGetComponent(out MemoryPoolObject ob))
                     {

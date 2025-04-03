@@ -104,6 +104,17 @@ public class Enemy : Character
         //앞에 플레이어가 있을 시
         if (isBack)
             return;
+
+        if (GameManager.inst.gameEnd)
+        {
+            if (attackTarget != null)
+            {
+                attackTarget = null;
+                _animator.SetBool("IsAttacking", false);
+            }
+            return;
+        }
+
         RaycastHit2D hitBox = Physics2D.Raycast(frontRayTr.position, Vector3.left, .1f, WallLayer);
         if (hitBox)
         {
@@ -122,9 +133,13 @@ public class Enemy : Character
         }
         else
         {
-            attackTarget = null;
-            checkAttack = false;
-            _animator.SetBool("IsAttacking", false);
+            if(attackTarget != null)
+            {
+                attackTarget = null;
+                checkAttack = false;
+                _animator.SetBool("IsAttacking", false);
+            }
+
         }
     }
 
@@ -171,10 +186,12 @@ public class Enemy : Character
         isMove = true;
         moveVec.x = .8f;
         rb.mass = 10.0f;
-
-        while(true)
+        float time = 0;
+        while(time < 0.5f)
         {
-            RaycastHit2D hit = Physics2D.Raycast(frontRayTr.position, Vector3.left, 10f, layer);
+            time += Time.fixedDeltaTime;
+            RaycastHit2D hit = Physics2D.Raycast(frontRayTr.position, Vector3.left, 15f, layer);
+
             if (hit)
                 break;
             yield return new WaitForFixedUpdate();
@@ -197,16 +214,24 @@ public class Enemy : Character
     void OnAttack()
     {
         if (attackTarget != null)
+        {
             attackTarget.TakeDamage(2);
+            SoundManager.instance.PlayEffSound(SoundManager.instance.soundClip[(int)SoundsType.EnemyAttack], 0.1f);
+        }
     }
 
     public override void DieEffect()
     {
+        GameManager.inst.GetExp();
         ObjectReturn();
     }
 
     public override void ResetObject()
     {
+        isMove = true;
+        isBack = false;
+        checkAttack = false;
+        _animator.SetBool("IsAttacking", false);
         ResetCharacter();
     }
 }

@@ -73,8 +73,8 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: 1637001797
+  m_SortingLayer: 2
   m_SortingOrder: 0
   m_Sprite: {fileID: 154122315, guid: 0d5e657ee5a074e4baa53d5b248a01d2, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -101,7 +101,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   listIdx: 0
   itemNumber: 0
-  bulletSpeed: 10
+  bulletSpeed: 15
 --- !u!58 &4585256939709766391
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -157,8 +157,8 @@ TrailRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: 1637001797
+  m_SortingLayer: 2
   m_SortingOrder: 0
   m_Time: 0.2
   m_Parameters:
